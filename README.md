@@ -14,7 +14,24 @@ Change list from V5.07.01
 V6.00.00b6    
 Added CAN etc  
 
+To Compile the source.  
+Using STM32CubeIDE v2.0.0 and GCC 13.3.x  
+ 
+Just put the source in a directory in the STM32CubeIDE workspace   
+then open the .project file in notepad and adjust the <name>xxxxx</name> entry to match the directory used in the workspace.    
 
+   <?xml version="1.0" encoding="UTF-8"?>  i.e.    
+   <projectDescription>  
+   <name>CMM2</name>  
+   <comment></comment>  
+   <projects>  
+   </projects>  
+      
+Then use STM32CubeIDE menu, File->Open Projects From File System    
+and select the folder and it should import.  
+It will import to STM32CubeIDE as that name.  
+Once its imported into STM32CUBEIDE it is set to compile as Debug. Go to menu  
+Project-->Build Configurations-->Set Active and selected Release. This should compile.  
 
 
 
