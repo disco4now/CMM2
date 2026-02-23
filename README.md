@@ -23,7 +23,7 @@ Added CAN etc
 CMM2 Colour Maximite 2 MMBasic   
 MMBasic for CMM2 hardware based on STM32H743II
 
-Copyright 2011-2025 Geoff Graham and  Peter Mather.
+Copyright 2011-2026 Geoff Graham, Peter Mather and Gerry Allardice.
 
 Redistribution and use in source and binary forms, with or without
 modification, are permitted provided that the following conditions are met:
