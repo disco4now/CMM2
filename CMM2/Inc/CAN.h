@@ -1,12 +1,9 @@
-/*-*****************************************************************************
-MMBasic for STM32H743 [ZI2 and VIT6] (Armmite H7)
-
+/***************************************************************************
+CMM2 MMBasic
 CAN.h
 
-Include file that contains the globals and defines for SPI in MMBasic.
 
-Copyright 2011-2023 Geoff Graham and  Peter Mather.
-Copyright 2024  Gerry Allardice.
+Copyright 2011-2026 Geoff Graham, Peter Mather and Gerry Allardice.
 
 Redistribution and use in source and binary forms, with or without
 modification, are permitted provided that the following conditions are met:
@@ -42,43 +39,22 @@ CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY,
 OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
+------------------------------------------------------------------------------
+  * In addition the software components from STMicroelectronics are provided
+  * subject to the license as detailed below:
+------------------------------------------------------------------------------
+  * @attention
+  *
+  * <h2><center>&copy; Copyright (c) 2020 STMicroelectronics.
+  * All rights reserved.</center></h2>
+  *
+  * This software component is licensed by ST under Ultimate Liberty license
+  * SLA0044, the "License"; You may not use this file except in compliance with
+  * the License. You may obtain a copy of the License at:
+  *                             www.st.com/SLA0044
+  *
 *******************************************************************************/
 
-
-/**********************************************************************************
- the C language function associated with commands, functions or operators should be
- declared here
-**********************************************************************************/
-#if !defined(INCLUDE_COMMAND_TABLE) && !defined(INCLUDE_TOKEN_TABLE)
-
-//void cmd_can(void);
-
-
-#endif
-
-
-/**********************************************************************************
- All command tokens tokens (eg, PRINT, FOR, etc) should be inserted in this table
-**********************************************************************************/
-#ifdef INCLUDE_COMMAND_TABLE
-//	{ "CAN",	T_CMD,				0, cmd_can	},
-#endif
-
-
-/**********************************************************************************
- All other tokens (keywords, functions, operators) should be inserted in this table
-**********************************************************************************/
-#ifdef INCLUDE_TOKEN_TABLE
- //   { "CAN(",	T_FUN | T_INT,		0, fun_can,	},
-#endif
-
-
-
-/***********************************************************************************
- Function prototypes
-***********************************************************************************/
-
-//#ifdef INCLUDE_FUNCTION_DEFINES
 #ifndef CAN_H
 #define CAN_H
 

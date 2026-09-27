@@ -1,3 +1,45 @@
+/***************************************************************************
+CMM2 MMBasic
+AllCommands.h
+
+Copyright 2011-2026 Geoff Graham, Peter Mather and Gerry Allardice.
+
+Redistribution and use in source and binary forms, with or without
+modification, are permitted provided that the following conditions are met:
+
+1. Redistributions of source code must retain the above copyright notice,
+   this list of conditions and the following disclaimer.
+
+2. Redistributions in binary form must reproduce the above copyright notice,
+   this list of conditions and the following disclaimer in the documentation
+   and/or other materials provided with the distribution.
+
+3. Neither the name of the copyright holders nor the names of its contributors
+   may be used to endorse or promote products derived from this software
+   without specific prior written permission.
+
+4. The name MMBasic be used when referring to the interpreter in any
+   documentation and promotional material and the original copyright message
+  be displayed  on the console at startup (additional copyright messages may
+   be added).
+
+5. All advertising materials mentioning features or use of this software must
+   display the following acknowledgement: This product includes software
+   developed by Geoff Graham and Peter Mather.
+
+THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
+ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
+WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
+DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDERS OR CONTRIBUTORS BE LIABLE
+FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL
+DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR
+SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER
+CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY,
+OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
+OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+
+*******************************************************************************/
+
 #if !defined(INCLUDE_COMMAND_TABLE) && !defined(INCLUDE_TOKEN_TABLE)
 #define RADCONV   (MMFLOAT)57.2957795130823209L	  // Used when converting degrees -> radians and vice versa
 #define PI_VALUE  (MMFLOAT)3.14159265358979323L
@@ -104,6 +146,7 @@ void cmd_execute(void);
 void cmd_call(void);
 void cmd_debug(void);
 void cmd_help(void);
+//void cmd_helpx(void);
 void cmd_text(void);
 void cmd_pixel(void);
 void cmd_circle(void);
@@ -162,8 +205,10 @@ void cmd_port(void);
 void cmd_ir(void);
 void cmd_csubinterrupt(void);
 void cmd_WS2812(void);
+//void cmd_HUMID(void);
 void cmd_dht22(void);
 void cmd_bitbang(void);
+void cmd_bitstream(void);
 void cmd_load(void);
 void cmd_mkdir(void);
 void cmd_rmdir(void);
@@ -379,7 +424,8 @@ void op_inv(void);
 	{ "Function",   T_CMD,				0, cmd_subfun	},
 	{ "GoSub",		T_CMD,				0, cmd_gosub	},
 	{ "GoTo",		T_CMD,				0, cmd_goto		},
-	{ "Help",		T_CMD,				0, cmd_help		},
+	{ "Help",		T_CMD,       		0, cmd_help		},
+//	{ "Helpx",		T_CMD | T_FUN,		0, cmd_helpx	},  //T_FUN added for help.txt
 	{ "If",			T_CMD,				0, cmd_if		},
 	{ "Inc",		T_CMD,				0, cmd_inc		},
 	{ "Line Input", T_CMD,				0, cmd_lineinput},
@@ -497,6 +543,8 @@ void op_inv(void);
 	{ "Bezier",         T_CMD,              0, cmd_bezier    },
 	{ "SYNC",           T_CMD,			    0, cmd_sync    },
 	{ "WS2812",         T_CMD,              0, cmd_WS2812},
+	{ "Humid",          T_CMD,               0, cmd_dht22},
+	{ "Bitstream" ,     T_CMD,               0, cmd_bitstream},
 //	{ "Byte(",          T_CMD | T_FUN, 0, cmd_byte},
 //	{ "Flag(",          T_CMD | T_FUN, 0, cmd_flag},
 //	{ "Bit(",           T_CMD | T_FUN, 0, cmd_bit},
@@ -517,15 +565,15 @@ void op_inv(void);
 **********************************************************************************/
 #ifdef INCLUDE_TOKEN_TABLE
 	// These 4 operators mustn't be moved
-	{ "Not",		T_OPER | T_NBR | T_INT,			3, op_not		},
+	{ "Not",		T_OPER | T_NBR | T_INT,			3, op_not		},        //00
 	{ "INV",		T_OPER | T_NBR | T_INT,			3, op_inv		},
 	{ "+",			T_OPER | T_NBR | T_INT | T_STR, 2, op_add		},
-	{ "-",			T_OPER | T_NBR | T_INT,		2, op_subtract          },
+	{ "-",			T_OPER | T_NBR | T_INT,		2, op_subtract          },    //03
 	//
 	{ "^",			T_OPER | T_NBR | T_INT,		0, op_exp		},
 	{ "*",			T_OPER | T_NBR | T_INT,		1, op_mul		},
 	{ "/",			T_OPER | T_NBR,                 1, op_div		},
-	{ "\\",			T_OPER | T_INT,			1, op_divint            },
+	{ "\\",			T_OPER | T_INT,			1, op_divint            },        //07
 	{ "MOD",		T_OPER | T_INT,			1, op_mod		},
 	{ "<<",			T_OPER | T_INT,                 4, op_shiftleft		},      // this must come before less than (<)
 	{ ">>>",		T_OPER | T_INT,                 4, op_shiftright	},      // this must come before greater than (>) and shift right
@@ -533,12 +581,12 @@ void op_inv(void);
 	{ "<>",			T_OPER | T_NBR | T_INT | T_STR, 5, op_ne		},      // this must come before less than (<)
 	{ ">=",			T_OPER | T_NBR | T_INT | T_STR, 5, op_gte		},      // this must come before greater than (>)
 	{ "<=",			T_OPER | T_NBR | T_INT | T_STR, 5, op_lte		},      // this must come before less than (<)
-	{ "<",			T_OPER | T_NBR | T_INT | T_STR, 5, op_lt		},
+	{ "<",			T_OPER | T_NBR | T_INT | T_STR, 5, op_lt		},      //0F
 	{ ">",			T_OPER | T_NBR | T_INT | T_STR, 5, op_gt		},
 	{ "=",			T_OPER | T_NBR | T_INT | T_STR, 6, op_equal		},
 	{ "AND",		T_OPER | T_INT,			7, op_and		},
 	{ "OR",			T_OPER | T_INT,			7, op_or		},
-	{ "XOR",		T_OPER | T_INT,			7, op_xor		},
+	{ "XOR",		T_OPER | T_INT,			7, op_xor		},              //15
 	{ "For",		T_NA,				0, op_invalid	},
 	{ "Else",		T_NA,				0, op_invalid	},
 	{ "GoSub",		T_NA,				0, op_invalid	},
@@ -547,7 +595,8 @@ void op_inv(void);
 	{ "Then",		T_NA,				0, op_invalid	},
 	{ "To",			T_NA,				0, op_invalid	},
 	{ "Until",		T_NA,				0, op_invalid	},
-	{ "While",		T_NA,				0, op_invalid	},
+	{ "While",		T_NA,				0, op_invalid	},                  //1E
+
 	{ "RGB(",           T_FUN | T_INT,		0, fun_rgb	        },
 //	{ "MM.HRes",	    T_FNA | T_INT,		0, fun_mmhres 	    },
 //	{ "MM.VRes",	    T_FNA | T_INT,		0, fun_mmvres 	    },
@@ -610,7 +659,7 @@ void op_inv(void);
 	{ "Str2bin(",	T_FUN  | T_NBR | T_INT,	0, fun_str2bin	},
 //	{ "MM.CmdLine$",T_FNA  | T_STR,			0, fun_cmdline	},
 	{ "Call(",		T_FUN | T_STR | T_INT | T_NBR,		0, fun_call	},
-  	{ "MsgBox(",        T_FUN | T_INT,              0, fun_msgbox     },
+  	{ "MsgBox(",    T_FUN | T_INT,              0, fun_msgbox     },
   	{ "CtrlVal(",       T_FUN | T_NBR | T_STR,      0, fun_ctrlval    },
   	{ "Click(",       T_FUN | T_INT,        0, fun_touch  },
 	{ "Math(",	    T_FUN | T_NBR | T_INT,		0, fun_math	},

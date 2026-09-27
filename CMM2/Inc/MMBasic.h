@@ -1,24 +1,60 @@
-/***********************************************************************************************************************
+/***************************************************************************
+CMM2 MMBasic
 MMBasic.h
 
 Include file that contains the globals and defines for MMBasic.c in MMBasic.
 
-Copyright 2011 - 2021 Geoff Graham.  All Rights Reserved.
-Copyright 2016 - 2021 Peter Mather.  All Rights Reserved.
+Copyright 2011-2026 Geoff Graham, Peter Mather and Gerry Allardice.
 
-This file and modified versions of this file are supplied to specific individuals or organisations under the following
-provisions:
+Redistribution and use in source and binary forms, with or without
+modification, are permitted provided that the following conditions are met:
 
-- This file, or any files that comprise the MMBasic source (modified or not), may not be distributed or copied to any other
-  person or organisation without written permission.
+1. Redistributions of source code must retain the above copyright notice,
+   this list of conditions and the following disclaimer.
 
-- Object files (.o and .hex files) generated using this file (modified or not) may not be distributed or copied to any other
-  person or organisation without written permission.
+2. Redistributions in binary form must reproduce the above copyright notice,
+   this list of conditions and the following disclaimer in the documentation
+   and/or other materials provided with the distribution.
 
-- This file is provided in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty of
-  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
+3. Neither the name of the copyright holders nor the names of its contributors
+   may be used to endorse or promote products derived from this software
+   without specific prior written permission.
 
-************************************************************************************************************************/
+4. The name MMBasic be used when referring to the interpreter in any
+   documentation and promotional material and the original copyright message
+  be displayed  on the console at startup (additional copyright messages may
+   be added).
+
+5. All advertising materials mentioning features or use of this software must
+   display the following acknowledgement: This product includes software
+   developed by Geoff Graham and Peter Mather.
+
+THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
+ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
+WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
+DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDERS OR CONTRIBUTORS BE LIABLE
+FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL
+DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR
+SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER
+CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY,
+OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
+OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+
+------------------------------------------------------------------------------
+  * In addition the software components from STMicroelectronics are provided
+  * subject to the license as detailed below:
+------------------------------------------------------------------------------
+  * @attention
+  *
+  * <h2><center>&copy; Copyright (c) 2020 STMicroelectronics.
+  * All rights reserved.</center></h2>
+  *
+  * This software component is licensed by ST under Ultimate Liberty license
+  * SLA0044, the "License"; You may not use this file except in compliance with
+  * the License. You may obtain a copy of the License at:
+  *                             www.st.com/SLA0044
+  *
+*******************************************************************************/
 
 #include <stdlib.h>
 #include <setjmp.h>
@@ -224,11 +260,11 @@ extern const char namestart[], namein[], nameend[];
 #define isnamechar(c)   (namein[(uint8_t)c])                       // true if valid part of a variable name  (0x1e uadded fior structures)
 #define isnameend(c)    (nameend[(uint8_t)c])                      // true if valid at the end of a variable name
 
-//#define isnamestart(c)  (((c & 0xDF)>='A' && (c & 0xDF)<='Z') || c == '_')                    // true if valid start of a variable name
-//#define isnamechar(c)   (isnamestart(c) || (c>=48 && c<=57) || c == '.')        // true if valid part of a variable name
+//#define isnamestart(c)  (((c & 0xDF)>='A' && (c & 0xDF)<='Z') || c == '_')         // true if valid start of a variable name
+//#define isnamechar(c)   (isnamestart(c) || (c>=48 && c<=57) || c == '.')           // true if valid part of a variable name
 //#define isnameend(c)    (isnamechar(c) || c == '$' || c == '!' || c == '%')        // true if valid at the end of a variable name
 
-#define tokentype(i)    ((i >= C_BASETOKEN && i < TokenTableSize - 1 + C_BASETOKEN) ? (tokentbl[i - C_BASETOKEN].type) : 0)             // get the type of a token
+#define tokentype(i)    ((i >= C_BASETOKEN && i < TokenTableSize - 1 + C_BASETOKEN) ? (tokentbl[i - C_BASETOKEN].type) : 0)                     // get the type of a token
 #define tokenfunction(i)((i >= C_BASETOKEN && i < TokenTableSize - 1 + C_BASETOKEN) ? (tokentbl[i - C_BASETOKEN].fptr) : (tokentbl[0].fptr))    // get the function pointer  of a token
 #define tokenname(i)    ((i >= C_BASETOKEN && i < TokenTableSize - 1 + C_BASETOKEN) ? (char *)(tokentbl[i - C_BASETOKEN].name) : "")            // get the name of a token
 
