@@ -1,26 +1,61 @@
-/***********************************************************************************************************************
-MMBasic
+/***************************************************************************
 
+CMM2 MMBasic
 FileIO.c
 
 Does all the SD Card related file I/O in MMBasic.
 
-Copyright 2011 - 2021 Geoff Graham.  All Rights Reserved.
-Copyright 2016 - 2021 Peter Mather.  All Rights Reserved.
+Copyright 2011-2026 Geoff Graham, Peter Mather and Gerry Allardice.
 
-This file and modified versions of this file are supplied to specific individuals or organisations under the following
-provisions:
+Redistribution and use in source and binary forms, with or without
+modification, are permitted provided that the following conditions are met:
 
-- This file, or any files that comprise the MMBasic source (modified or not), may not be distributed or copied to any other
-  person or organisation without written permission.
+1. Redistributions of source code must retain the above copyright notice,
+   this list of conditions and the following disclaimer.
 
-- Object files (.o and .hex files) generated using this file (modified or not) may not be distributed or copied to any other
-  person or organisation without written permission.
+2. Redistributions in binary form must reproduce the above copyright notice,
+   this list of conditions and the following disclaimer in the documentation
+   and/or other materials provided with the distribution.
 
-- This file is provided in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty of
-  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
+3. Neither the name of the copyright holders nor the names of its contributors
+   may be used to endorse or promote products derived from this software
+   without specific prior written permission.
 
-************************************************************************************************************************/
+4. The name MMBasic be used when referring to the interpreter in any
+   documentation and promotional material and the original copyright message
+  be displayed  on the console at startup (additional copyright messages may
+   be added).
+
+5. All advertising materials mentioning features or use of this software must
+   display the following acknowledgement: This product includes software
+   developed by Geoff Graham and Peter Mather.
+
+THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
+ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
+WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
+DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDERS OR CONTRIBUTORS BE LIABLE
+FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL
+DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR
+SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER
+CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY,
+OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
+OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+
+------------------------------------------------------------------------------
+  * In addition the software components from STMicroelectronics are provided
+  * subject to the license as detailed below:
+------------------------------------------------------------------------------
+  * @attention
+  *
+  * <h2><center>&copy; Copyright (c) 2020 STMicroelectronics.
+  * All rights reserved.</center></h2>
+  *
+  * This software component is licensed by ST under Ultimate Liberty license
+  * SLA0044, the "License"; You may not use this file except in compliance with
+  * the License. You may obtain a copy of the License at:
+  *                             www.st.com/SLA0044
+  *
+*******************************************************************************/
 
 
 #include "MMBasic_Includes.h"
@@ -50,6 +85,7 @@ int FileEOF(int fnbr);
 void File_CloseAll(void);
 int InitSDCard(void);
 char *ChangeToDir(char *p);
+int BMPfnbr;
 void LoadImage(char *p);
 void LoadJPG(char *p);
 void LoadPNG(char *p);
@@ -77,6 +113,10 @@ extern int docheck;
 extern LTDC_LayerCfgTypeDef pLayerCfg;
 char fullpathname[FF_MAX_LFN];
 char fullfilepathname[FF_MAX_LFN];
+
+//extern BYTE BMP_bDecode(int x, int y, int fnbr);
+bool (*linecallback)(int *imagewidth, int *imageheight, uint32_t *linedata, int *linenumber) = NULL;
+
 typedef struct sa_dlist {
     char from[STRINGSIZE];
     char to[STRINGSIZE];
@@ -1170,12 +1210,18 @@ void cmd_name(void) {
     }
 }
 
+/* LOAD BMP updated to use updated BmPDecoder.c based of Picomite version in lieu of MS version
+ * Dithering has been removed.
+*/
 
-extern int BMP_bDecode(int x, int y, int fnbr);
-
+//extern int BMP_bDecode(int x, int y, int fnbr);
+int ReadAndDisplayBMP(int fnbr, int dither_mode, int img_x_offset,int img_y_offset, int x_display, int y_display);
 void LoadImage(char *p) {
-	int fnbr;
-	int xOrigin, yOrigin;
+	//int fnbr;
+    int xOrigin = 0, yOrigin = 0;
+    int xRead = 0, yRead = 0;
+    int mode = -1;
+	//int xOrigin, yOrigin;
 
 	// get the command line arguments
 	getargs(&p, 5, ",");                                            // this MUST be the first executable line in the function
@@ -1194,14 +1240,60 @@ void LoadImage(char *p) {
 
 	// open the file
 	if(strchr(p, '.') == NULL) strcat(p, ".BMP");
-	fnbr = FindFreeFileNbr();
-    if(!BasicFileOpen(p, fnbr, FA_READ)) return;
+	//fnbr = FindFreeFileNbr();
+	BMPfnbr = FindFreeFileNbr();
+   // if(!BasicFileOpen(p, fnbr, FA_READ)) return;
+    if (!BasicFileOpen((char *)p, BMPfnbr, FA_READ)) return;
 	int savey=optiony;
 	optiony=0;
-    BMP_bDecode(xOrigin, yOrigin, fnbr);
+    //BMP_bDecode(xOrigin, yOrigin, fnbr);
+    ReadAndDisplayBMP(BMPfnbr, mode, xRead, yRead, xOrigin, yOrigin);  //New interface to BmpDecoder
     optiony=savey;
-    FileClose(fnbr);
+    //FileClose(fnbr);
+    FileClose(BMPfnbr);
 }
+/*
+int ReadAndDisplayBMP(int fnbr, int dither_mode, int img_x_offset,int img_y_offset, int x_display, int y_display);
+void LoadImage(char *p)
+{
+    //    int fnbr;
+    int xOrigin = 0, yOrigin = 0;
+    int xRead = 0, yRead = 0;
+    int mode = -1;
+    // get the command line arguments
+    getcsargs(&p, 11); // this MUST be the first executable line in the function
+    if (argc == 0)
+        StandardError(2);
+    if (!InitSDCard())
+        return;
+    p = getFstring(argv[0]); // get the file name
+
+    xOrigin = yOrigin = 0;
+    if (argc >= 3 && *argv[2])
+        xOrigin = getinteger(argv[2]); // get the x origin (optional) argument
+    if (argc >= 5 && *argv[4])
+        yOrigin = getinteger(argv[4]); // get the y origin (optional) argument
+    if (argc >= 7 && *argv[6])
+        mode = getint(argv[6], -1, 7); // get the y origin (optional) argument
+    if (mode == 3 || mode == 7)
+        error("RGB565 dithering not yet supported");
+    if (argc >= 9 && *argv[8])
+        xRead = getint(argv[8], 0, 1919); // get the y origin (optional) argument
+    if (argc == 11)
+        yRead = getint(argv[10], 0, 1079); // get the y origin (optional) argument
+    // open the file
+    //AppendDefaultExtension((char *)p, ".bmp");
+    if(strchr(p, '.') == NULL) strcat(p, ".BMP");
+    BMPfnbr = FindFreeFileNbr();
+    if (!BasicFileOpen((char *)p, BMPfnbr, FA_READ))
+        return;
+    ReadAndDisplayBMP(BMPfnbr, mode, xRead, yRead, xOrigin, yOrigin);
+    FileClose(BMPfnbr);
+   // if (Option.Refresh)
+  //      Display_Refresh();
+}
+*/
+
 void LoadPNG(char *p) {
 //	int fnbr;
 	int xOrigin, yOrigin,w,h, transparent=0, force=0;
@@ -1877,6 +1969,19 @@ void CheckSDCard(void) {
 			GIFcallback();
 		}
 	}
+}
+
+int ExistsFile(char *p){
+    int retval=0;
+	DIR djd;
+	FILINFO fnod;
+	memset(&djd,0,sizeof(DIR));
+	memset(&fnod,0,sizeof(FILINFO));
+	if(!InitSDCard()) return -1;
+	FSerror = f_stat(p, &fnod);
+	if(FSerror != FR_OK)iret=0;
+	else if(!(fnod.fattrib & AM_DIR))retval=1;
+    return retval;
 }
 
 

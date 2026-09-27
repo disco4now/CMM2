@@ -1,26 +1,61 @@
-/***********************************************************************************************************************
-MMBasic
+/***************************************************************************
 
+CMM2 MMBasic
 External.c
 
-Handles reading and writing to the digital and analog input/output pins ising the SETPIN and PIN commands
+Handles reading and writing to the digital and analog input/output pins using the SETPIN and PIN commands
 
-Copyright 2011 - 2021 Geoff Graham.  All Rights Reserved.
-Copyright 2016 - 2021 Peter Mather.  All Rights Reserved.
+Copyright 2011-2026 Geoff Graham, Peter Mather and Gerry Allardice.
 
-This file and modified versions of this file are supplied to specific individuals or organisations under the following
-provisions:
+Redistribution and use in source and binary forms, with or without
+modification, are permitted provided that the following conditions are met:
 
-- This file, or any files that comprise the MMBasic source (modified or not), may not be distributed or copied to any other
-  person or organisation without written permission.
+1. Redistributions of source code must retain the above copyright notice,
+   this list of conditions and the following disclaimer.
 
-- Object files (.o and .hex files) generated using this file (modified or not) may not be distributed or copied to any other
-  person or organisation without written permission.
+2. Redistributions in binary form must reproduce the above copyright notice,
+   this list of conditions and the following disclaimer in the documentation
+   and/or other materials provided with the distribution.
 
-- This file is provided in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty of
-  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
+3. Neither the name of the copyright holders nor the names of its contributors
+   may be used to endorse or promote products derived from this software
+   without specific prior written permission.
 
-************************************************************************************************************************/
+4. The name MMBasic be used when referring to the interpreter in any
+   documentation and promotional material and the original copyright message
+  be displayed  on the console at startup (additional copyright messages may
+   be added).
+
+5. All advertising materials mentioning features or use of this software must
+   display the following acknowledgement: This product includes software
+   developed by Geoff Graham and Peter Mather.
+
+THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
+ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
+WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
+DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDERS OR CONTRIBUTORS BE LIABLE
+FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL
+DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR
+SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER
+CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY,
+OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
+OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+
+------------------------------------------------------------------------------
+  * In addition the software components from STMicroelectronics are provided
+  * subject to the license as detailed below:
+------------------------------------------------------------------------------
+  * @attention
+  *
+  * <h2><center>&copy; Copyright (c) 2020 STMicroelectronics.
+  * All rights reserved.</center></h2>
+  *
+  * This software component is licensed by ST under Ultimate Liberty license
+  * SLA0044, the "License"; You may not use this file except in compliance with
+  * the License. You may obtain a copy of the License at:
+  *                             www.st.com/SLA0044
+  *
+*******************************************************************************/
 
 #include "MMBasic_Includes.h"
 #define DEFINE_PINDEF_TABLE
@@ -1370,13 +1405,14 @@ unsigned short FloatToUint16(MMFLOAT x) {
 
 //#define CoreTicks(us) (((us * 1000u) / (2000000000u/PeripheralBusSpeed)))  // how many core timer ticks does the argument in uS represent
 
-void DHT22(char *p) {
+//void DHT22(char *p) {
+void cmd_dht22(void) {
     int pin;
     long long int r;
     int i, timeout, scale=0;;
     MMFLOAT *temp, *humid;
 
-    getargs(&p, 7, ",");
+    getargs(&cmdline, 7, ",");
     if(!(argc == 5 || argc == 7)) error("Incorrect number of arguments");
 
     // get the two variables
@@ -1436,24 +1472,7 @@ normal_exit:
     PinSetBit(pin, LATCLR);
 }
 
-//Updated to use parsenumberarray G.A. 02/11/2025
-void cmd_bitbang(void){
-	char *tp;
-	tp = checkstring(cmdline, "WS2812");
-	if(tp) {
-		//WS2812(tp);
-		//return;
-        cmdline = tp;
-        cmd_WS2812();
-        return;
-	}
-	tp = checkstring(cmdline, "DHT22");
-	if(tp) {
-		DHT22(tp);
-		return;
-	}
-	tp = checkstring(cmdline, "BITSTREAM");
-	if(tp) {
+void cmd_bitstream(void){
 	//	void *ptr1 = NULL;
 		int i,num,size;
         //int i,num;
@@ -1461,7 +1480,7 @@ void cmd_bitbang(void){
 		MMFLOAT *a1float=NULL;
 		int64_t *a1int=NULL;
 		unsigned short *data, now;
-		getargs(&tp, 5,",");
+		getargs(&cmdline, 5,",");
 		if(!(argc == 5)) error("Argument count");
 		num=getint(argv[2],1,250000);
         pin=getinteger(argv[0]);
@@ -1508,7 +1527,36 @@ void cmd_bitbang(void){
         HAL_TIM_Base_Stop(&htim17);
         __enable_irq();
 		return;
+
+}
+
+//Updated to use parsenumberarray G.A. 02/11/2025
+void cmd_bitbang(void){
+	char *tp;
+	tp = checkstring(cmdline, "WS2812");
+	if(tp) {
+		//WS2812(tp);
+		//return;
+        cmdline = tp;
+        cmd_WS2812();
+        return;
 	}
+	tp = checkstring(cmdline, "DHT22");
+	if(tp) {
+		//DHT22(tp);
+		//return;
+		cmdline = tp;
+		cmd_dht22();
+		return;
+
+	}
+	tp = checkstring(cmdline, "BITSTREAM");
+	if(tp) {
+		cmdline=tp;
+		cmd_bitstream();
+		return;
+	}
+
 	error("Unknown BITBANG option");
 }
 /* Added type W for  support for SK6812 RGBW Leds */

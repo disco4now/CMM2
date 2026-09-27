@@ -1,25 +1,44 @@
-/* ************************************************************************** */
-/** Descriptive File Name
+/***************************************************************************
+CMM2 MMBasic
+GPS.c
 
-  @Company
-    Company Name
+Copyright 2011-2026 Geoff Graham, Peter Mather and Gerry Allardice.
 
-  @File Name
-    filename.c
+Redistribution and use in source and binary forms, with or without
+modification, are permitted provided that the following conditions are met:
 
-  @Summary
-    Brief description of the file.
+1. Redistributions of source code must retain the above copyright notice,
+   this list of conditions and the following disclaimer.
 
-  @Description
-    Describe the purpose of this file.
- */
-/* ************************************************************************** */
+2. Redistributions in binary form must reproduce the above copyright notice,
+   this list of conditions and the following disclaimer in the documentation
+   and/or other materials provided with the distribution.
 
-/* ************************************************************************** */
-/* ************************************************************************** */
-/* Section: Included Files                                                    */
-/* ************************************************************************** */
-/* ************************************************************************** */
+3. Neither the name of the copyright holders nor the names of its contributors
+   may be used to endorse or promote products derived from this software
+   without specific prior written permission.
+
+4. The name MMBasic be used when referring to the interpreter in any
+   documentation and promotional material and the original copyright message
+  be displayed  on the console at startup (additional copyright messages may
+   be added).
+
+5. All advertising materials mentioning features or use of this software must
+   display the following acknowledgement: This product includes software
+   developed by Geoff Graham and Peter Mather.
+
+THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
+ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
+WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
+DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDERS OR CONTRIBUTORS BE LIABLE
+FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL
+DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR
+SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER
+CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY,
+OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
+OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+
+*******************************************************************************/
 
 /* This section lists the other files that are included in this file.
  */
@@ -384,23 +403,36 @@ void GPS_parse(char *nmea) {
   struct tm  *tm;
   struct tm tma;
   tm=&tma;
+  // strip trailing \r and \n from the NMEA sentence
+  int len = strlen(nmea);
+  while (len > 0 && (nmea[len - 1] == '\r' || nmea[len - 1] == '\n'))
+    nmea[--len] = 0;
   if(gpsmonitor){
 	  MMPrintString(nmea);
+	  MMPrintString("\r\n");
   }
   // do checksum check
-  // first look if we even have one
-  if (nmea[strlen(nmea)-4] == '*') {
-    uint16_t sum = parseHex(nmea[strlen(nmea)-3]) * 16;
-    sum += parseHex(nmea[strlen(nmea)-2]);
-    uint8_t i;
-    // check checksum 
-    for (i=2; i < (strlen(nmea)-4); i++) {
+  // do checksum check
+  // find the '*' that precedes the two-digit hex checksum
+  if (len >= 4 && nmea[len - 3] == '*')
+  {
+    uint16_t sum = parseHex(nmea[len - 2]) * 16;
+    sum += parseHex(nmea[len - 1]);
+    // XOR all characters between '$' (exclusive) and '*' (exclusive)
+    for (int i = 1; i < (len - 3); i++)
+    {
       sum ^= nmea[i];
     }
-    if (sum != 0) {
+    if (sum != 0)
+    {
       // bad checksum :(
       return;
     }
+  }
+  else
+  {
+    // Missing Checksum, Abort!
+    return;
   }
 
   char degreebuff[10];

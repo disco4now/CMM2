@@ -50,7 +50,7 @@ extern volatile unsigned int MouseTimer;
 extern char *firststmt;
 extern char *nextstmt;
 void cutpasteselectCallback(char *cutbuf, int key);
- #define GUI_C_NORMAL            WHITE
+#define GUI_C_NORMAL            WHITE
 #define GUI_C_BCOLOUR           BLACK
 #define GUI_C_COMMENT           RGB(192, 192, 0,	0)
 #define GUI_C_KEYWORD           CYAN
@@ -241,7 +241,8 @@ char *C_HL_keywords[] = {"ADC","Arc","AutoSave","Bitbang","Blit",
 		"TURTLE","VAR","WatchDog","While",
 		"XModem","Abs","ACos","And",
 		"As","Asc","ASin","Atan2","Atn",
-		"Baudrate","Bin$","Bin2str$","Choice","Chr$","Cint",
+		"Baudrate","Bin$","Bin2str$","Bit","Byte","Flag",
+		"Choice","Chr$","Cint",
 		"Classic", "Cos","Cwd$","Date$","DateTime$","Day$",
 		"Deg","Dir$","Distance","Else","Eof",
 		"Epoch","Eval","Exp","Field$","Fix",
@@ -251,8 +252,8 @@ char *C_HL_keywords[] = {"ADC","Arc","AutoSave","Bitbang","Blit",
 		"Len","LGetByte","LGetStr$","LInStr","LLen","Loc",
 		"Lof","Log","MAP","math","Max","Mid$",
 		"Min","mmdebug","MM.Device$","MM.ErrMsg$","MM.Errno",
-		"MM.HRes","MM.I2C","MM.CMDLINE$",
-		"MM.Info","MM.Info$","MM.OneWire","MM.VRes",
+		"MM.HRes","MM.I2C","MM.CMDLINE$","MM.FLAG",
+		"MM.Info","MM.Info$","MM.OneWire","MM.VRes","MM.VER"
 		"MM.Watchdog","Mod","Mouse","Not","Nunchuk","Oct$",
 		"Or","Peek","Pi","Pin","Pixel",
 		"Port","Pos","Pulsin","Rad","RGB",

@@ -1,28 +1,63 @@
-/***********************************************************************************************************************
-MMBasic
+/***************************************************************************
 
+CMM2 MMBasic
 MMBasic.c
 
 Provides the core functions used in MMBasic.  These include parsing the command line and converting the key
 words into tokens, storage and management of the program in memory, storage and management of variables,
 the expression execution engine and other useful functions.
 
-Copyright 2011 - 2021 Geoff Graham.  All Rights Reserved.
-Copyright 2016 - 2021 Peter Mather.  All Rights Reserved.
+Copyright 2011-2026 Geoff Graham, Peter Mather and Gerry Allardice.
 
-This file and modified versions of this file are supplied to specific individuals or organisations under the following
-provisions:
+Redistribution and use in source and binary forms, with or without
+modification, are permitted provided that the following conditions are met:
 
-- This file, or any files that comprise the MMBasic source (modified or not), may not be distributed or copied to any other
-  person or organisation without written permission.
+1. Redistributions of source code must retain the above copyright notice,
+   this list of conditions and the following disclaimer.
 
-- Object files (.o and .hex files) generated using this file (modified or not) may not be distributed or copied to any other
-  person or organisation without written permission.
+2. Redistributions in binary form must reproduce the above copyright notice,
+   this list of conditions and the following disclaimer in the documentation
+   and/or other materials provided with the distribution.
 
-- This file is provided in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty of
-  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
+3. Neither the name of the copyright holders nor the names of its contributors
+   may be used to endorse or promote products derived from this software
+   without specific prior written permission.
 
-************************************************************************************************************************/
+4. The name MMBasic be used when referring to the interpreter in any
+   documentation and promotional material and the original copyright message
+  be displayed  on the console at startup (additional copyright messages may
+   be added).
+
+5. All advertising materials mentioning features or use of this software must
+   display the following acknowledgement: This product includes software
+   developed by Geoff Graham and Peter Mather.
+
+THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
+ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
+WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
+DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDERS OR CONTRIBUTORS BE LIABLE
+FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL
+DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR
+SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER
+CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY,
+OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
+OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+
+------------------------------------------------------------------------------
+  * In addition the software components from STMicroelectronics are provided
+  * subject to the license as detailed below:
+------------------------------------------------------------------------------
+  * @attention
+  *
+  * <h2><center>&copy; Copyright (c) 2020 STMicroelectronics.
+  * All rights reserved.</center></h2>
+  *
+  * This software component is licensed by ST under Ultimate Liberty license
+  * SLA0044, the "License"; You may not use this file except in compliance with
+  * the License. You may obtain a copy of the License at:
+  *                             www.st.com/SLA0044
+  *
+*******************************************************************************/
 
 #include <stdio.h>
 #include <limits.h>
@@ -305,6 +340,7 @@ void MIPS16 InitBasic(void) {
     tokenGOSUB = GetTokenValue("GoSub");
     tokenAS    = GetTokenValue("As");
     tokenFOR   = GetTokenValue("For");
+
     cmdLOOP  = GetCommandValue("Loop");
     cmdIF      = GetCommandValue("If");
     cmdENDIF   = GetCommandValue("EndIf");
@@ -424,29 +460,44 @@ void ExecuteProgram(char *p) {
         }
 
         if(*p) {                                                    // if p is pointing to a command
-            // if (*p == '\'')   // CMM2 wont have comments in progmemory
-            //    nextstmt = cmdline = p + 1;
-            //else
+           // if (*p == '\'')   // CMM2 wont have comments in progmemory
+           //     nextstmt = cmdline = p + 1;
+           // else
         	    nextstmt = cmdline = p + sizeof(CommandToken);
             skipspace(cmdline);
             skipelement(nextstmt);
             if(*p && *p != '\'') {                                  // ignore a comment line
 				SaveLocalIndex = LocalIndex;                    // save this if we need to cleanup after an error
             	if(OptionErrorSkip == 0){
-#ifndef CMD16BIT
-					if(*(char*)p >= C_BASETOKEN && *(char*)p - C_BASETOKEN < CommandTableSize - 1 && (commandtbl[*(char*)p - C_BASETOKEN].type & T_CMD)) {
-						cmdtoken = *(char*)p;
-						targ = T_CMD;
-						commandtbl[*(char*)p - C_BASETOKEN].fptr(); // execute the command
-#else
+//#ifndef CMD16BIT
+//					if(*(char*)p >= C_BASETOKEN && *(char*)p - C_BASETOKEN < CommandTableSize - 1 && (commandtbl[*(char*)p - C_BASETOKEN].type & T_CMD)) {
+//						cmdtoken = *(char*)p;
+//						targ = T_CMD;
+//						commandtbl[*(char*)p - C_BASETOKEN].fptr(); // execute the command
+//#else
 	                if (p[0] >= C_BASETOKEN && p[1] >= C_BASETOKEN){
 	                    cmdtoken = commandtbl_decode(p);
 	                    targ = T_CMD;
 	                    commandtbl[cmdtoken].fptr(); // execute the command
-#endif
+//#endif
 
 					} else {
-						if(!isnamestart(*p)) error("Invalid character: @", (int)(*p));
+						//PIntH((char)p);PIntH((char)p+1);PIntH((char)p+2);PRet();
+						//MMPrintString("HELLO");PRet();
+						//if (!isnamestart(*p) && *p == '~')
+						//      StandardError(36);
+						//else if (!isnamestart(*p))
+						//	 error("Invalid character: @", (int)(*p));
+						//PIntHC(*(p)); PIntHC(*(p+1)); PIntHC(*(p+2)); PIntHC(*(p+3));
+						//PIntHC(*(p+4)); PIntHC(*(p+5)); PIntHC(*(p+6)); PIntHC(*(p+7));
+						//PIntHC(*(p+8)); PIntHC(*(p+9)); PIntHC(*(p+10)); PIntHC(*(p+11));
+						//PIntHC(*(p+12)); PIntHC(*(p+13)); PIntHC(*(p+14)); PIntHC(*(p+15));
+						//PRet();
+
+						if(!isnamestart(*p)){
+							PIntHC(*(p));PRet();
+							error("Invalid character: @", (int)(*p));
+						}
 						i = FindSubFun(p, false);                   // it could be a defined command
 						if(i >= 0) {                                // >= 0 means it is a user defined command
 							DefinedSubFun(false, p, i, NULL, NULL, NULL, NULL);
@@ -461,17 +512,17 @@ void ExecuteProgram(char *p) {
 					}
             	} else {
 					if(setjmp(ErrNext) == 0) {                          // return to the else leg of this if error and OPTION ERROR SKIP/IGNORE is in effect
-#ifndef CMD16BIT
-						if(*(char*)p >= C_BASETOKEN && *(char*)p - C_BASETOKEN < CommandTableSize - 1 && (commandtbl[*(char*)p - C_BASETOKEN].type & T_CMD)) {
-							cmdtoken = *(char*)p;
-							targ = T_CMD;
-							commandtbl[*(char*)p - C_BASETOKEN].fptr(); // execute the command
-#else
+//#ifndef CMD16BIT
+//						if(*(char*)p >= C_BASETOKEN && *(char*)p - C_BASETOKEN < CommandTableSize - 1 && (commandtbl[*(char*)p - C_BASETOKEN].type & T_CMD)) {
+//							cmdtoken = *(char*)p;
+//							targ = T_CMD;
+//							commandtbl[*(char*)p - C_BASETOKEN].fptr(); // execute the command
+//#else
 						if (p[0] >= C_BASETOKEN && p[1] >= C_BASETOKEN){
 							cmdtoken = commandtbl_decode(p);
 	                        targ = T_CMD;
 	                        commandtbl[cmdtoken].fptr(); // execute the command
-#endif
+//#endif
 						} else {
 							if(!isnamestart(*p)) error("Invalid character: @", (int)(*p));
 							i = FindSubFun(p, false);                   // it could be a defined command
@@ -479,7 +530,7 @@ void ExecuteProgram(char *p) {
 								DefinedSubFun(false, p, i, NULL, NULL, NULL, NULL);
 							}
 							else
-								error("Unknown command2");
+								error("Unknown command");
 						}
 					} else {
 						LocalIndex = SaveLocalIndex;                    // restore so that we can clean up any memory leaks
@@ -865,7 +916,8 @@ int PrepareProgramExt(char *p, int i, unsigned char **CFunPtr, int ErrAbort) {
                     {
                        // SetPreprogramError(memberErr, CurrentLinePtr);
                        // return -1;
-                    	error("ERROR PARSING STRUCTURE");
+                    	//error("ERROR PARSING STRUCTURE");
+                    	error((char *)memberErr);
                     }
                     break;
                 }
@@ -1802,6 +1854,8 @@ void STR_REPLACE(char *target, const char *needle, const char *replacement){
 	}
 
 }*/
+
+/*
 void STR_REPLACE(char *target, const char *needle, const char *replacement, uint8_t ignoresurround){
 	char *ip=target;
 	int toggle=0;
@@ -1851,6 +1905,57 @@ void STR_REPLACE(char *target, const char *needle, const char *replacement, uint
         }
     }
 }
+*/
+//Improved version from Pico 6.03.00 RC9
+void STR_REPLACE(char *target, const char *needle, const char *replacement, uint8_t ignoresurround)
+{
+    char *ip = target;
+    int toggle = 0;
+    char comment[STRINGSIZE] = {0};
+    skipspace(ip);
+    if (!(toupper(*ip) == 'R' && toupper(ip[1]) == 'E' && toupper(ip[2]) == 'M'))
+    {
+        while (*ip)
+        {
+            if (*ip == 34)
+            {
+                if (toggle == 0)
+                    toggle = 1;
+                else
+                    toggle = 0;
+                ip++;
+                continue;
+            }
+            if (toggle == 0 && *ip == '\'')
+            {
+                strcpy(comment, ip);
+                *ip = 0;
+                break;
+            }
+            if (toggle)
+            {
+                // Mark every char inside a quoted string by setting the high bit
+                // so str_replace cannot match a needle that falls inside the literal.
+                // tokenise() has already stripped the high bit from caller input, so
+                // any byte >= 0x80 we see on the way back out is one we set here.
+                *ip |= 0x80;
+            }
+            ip++;
+        }
+        str_replace(target, needle, replacement, ignoresurround);
+        ip = target;
+        if (comment[0] == '\'')
+        {
+            strcat(target, comment);
+        }
+        while (*ip)
+        {
+            if (*ip & 0x80)
+                *ip &= 0x7F;
+            ip++;
+        }
+    }
+}
 
 /********************************************************************************************************************************************
  take an input line and turn it into a line with tokens suitable for saving into memory
@@ -1870,28 +1975,56 @@ void MIPS16 tokenise(int console) {
     int firstnonwhite;
     int labelvalid;
     routinechecks(1);
+    // first, make sure that only printable characters are in the line
+       p = inpbuf;
+       while (*p)
+       {
+           *p = *p & 0x7f;
+           if (*p < ' ' || *p == 0x7f)
+              *p = ' ';
+           p++;
+       }
+       tp = inpbuf;
+       skipspace(tp);
+
+       if (helpquotes){
+         if (toupper(tp[0]) == 'H' && toupper(tp[1]) == 'E' && toupper(tp[2]) == 'L' && toupper(tp[3]) == 'P' && toupper(tp[4]) == ' ')
+         {
+           char *q = &tp[5];
+           skipspace(q);
+           if (*q != '"')
+           {
+               int end = strlen((char *)q);
+               memmove(&q[1], q, strlen((char *)q));
+               *q = '"';
+               q[end + 1] = 0;
+           }
+         }
+
+      }
+    i=0;
     while(i<MMEND){
         char buff[]="~( )";
         buff[2]=i+'A';
         STR_REPLACE((char *)inpbuf,overlaid_functions[i],buff, false);
         i++;
     }
-   // MMPrintString(inpbuf);PRet();
+    // MMPrintString(inpbuf);PRet();
     //first make function substitutions
     STR_REPLACE(inpbuf,"MM.INFO$","MM.INFO",0);
-    STR_REPLACE(inpbuf,"BIN$(","BASE$(2,",3);
-    STR_REPLACE(inpbuf,"OCT$(","BASE$(8,",3);
-    STR_REPLACE(inpbuf,"HEX$(","BASE$(16,",3);
+    STR_REPLACE(inpbuf,"BIN$(","BASE$(2,",2);   //fix for HEX$ replaced in converttoHEX$(123) function
+    STR_REPLACE(inpbuf,"OCT$(","BASE$(8,",2);
+    STR_REPLACE(inpbuf,"HEX$(","BASE$(16,",2);
 
-    STR_REPLACE(inpbuf,"BIT(","~BBF(1,",3);
-    STR_REPLACE(inpbuf,"BYTE(","~BBF(4,",3);
-    STR_REPLACE(inpbuf,"FLAG(","~BBF(0,",3);
+    STR_REPLACE(inpbuf,"BIT(","~BBF(1,",2);
+    STR_REPLACE(inpbuf,"BYTE(","~BBF(4,",2);
+    STR_REPLACE(inpbuf,"FLAG(","~BBF(0,",2);
 
 
-    STR_REPLACE(inpbuf,"BITBANG DHT22 ","BITBANG DHT22\370",3);
-    STR_REPLACE(inpbuf,"HUMID ","BITBANG DHT22\370",3);
-    STR_REPLACE(inpbuf,"DHT22 ","BITBANG DHT22\370",3);
-    STR_REPLACE(inpbuf,"BITBANG DHT22\370","BITBANG DHT22 ",3);
+   // STR_REPLACE(inpbuf,"BITBANG DHT22 ","BITBANG DHT22\370",3);
+   // STR_REPLACE(inpbuf,"HUMID ","BITBANG DHT22\370",3);
+   // STR_REPLACE(inpbuf,"DHT22 ","BITBANG DHT22\370",3);
+   // STR_REPLACE(inpbuf,"BITBANG DHT22\370","BITBANG DHT22 ",3);
 
 
 
@@ -1904,19 +2037,21 @@ void MIPS16 tokenise(int console) {
     STR_REPLACE(inpbuf,"=>",">=", 3);
     STR_REPLACE(inpbuf,"=<","<=", 3);
 
-    p = inpbuf;
-//    MMPrintString(inpbuf);PRet();
+  //  p = inpbuf;
+   // MMPrintString(inpbuf);PRet();
     // second, make sure that only printable characters are in the line
-    while(*p) {
-        *p = *p & 0x7f;
-        if(*p < ' ' || *p == 0x7f)  *p = ' ';
-        p++;
-    }
+   // while(*p) {
+   //     *p = *p & 0x7f;
+   //     if(*p < ' ' || *p == 0x7f)  *p = ' ';
+   //     p++;
+   // }
 
     // setup the input and output buffers
     p = inpbuf;
     op = tknbuf;
-    if(!console) *op++ = T_NEWLINE;
+    if(!console){
+    	*op++ = T_NEWLINE;
+    }
 
     // get the line number if it exists
     tp = p;
@@ -1942,7 +2077,7 @@ void MIPS16 tokenise(int console) {
             *op++ = *p++;
             continue;
         }
-
+/*
         // first look for quoted text and copy it across
         // this will throw an error if there is no closing quote
         if(*p == '"') {
@@ -1965,7 +2100,20 @@ void MIPS16 tokenise(int console) {
             *op++ = *p++;
             continue;
         }
-
+*/
+        // first look for quoted text and copy it across
+         // this will also accept a string without the closing quote and it will add the quote in
+         if (*p == '"')
+         {
+             do
+             {
+                 *op++ = *p++;
+             } while (*p != '"' && *p);
+             *op++ = '"';
+             if (*p == '"')
+                 p++;
+             continue;
+         }
         // copy anything after a comment (')
         if(*p == '\'') {
             do {
@@ -2148,6 +2296,8 @@ void MIPS16 tokenise(int console) {
             }
             if(i != TokenTableSize - 1) {
                 // we have a  match
+            	//MMPrintString("Found Function ");PRet();
+
                 i += C_BASETOKEN;
                 *op++ = i;                                          // insert the token found
                 p = tp2;                                            // and step over it in the source text
@@ -3541,6 +3691,12 @@ void *ResolveStructMember(char *struct_ptr, int struct_idx, char *member_path,
             int element_size = m_size;
             if (m_type & T_STR)
                 element_size = m_size + 1;
+            else if (m_type & T_STRUCT)
+            {   // Fix from Picomite 6.02.01RC8
+                if (m_size < 0 || m_size >= g_structcnt || g_structtbl[m_size] == NULL)
+                    error("Invalid structure type index");
+                element_size = g_structtbl[m_size]->total_size;
+            }
 
             char *pstart = p;
             int paren_depth = 0;

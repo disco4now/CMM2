@@ -1,26 +1,46 @@
-/***********************************************************************************************************************
-MMBasic
-
+/***************************************************************************
+CMM2 MMBasic
 functions.c
 
 Handles all the functions in MMBasic.
 
-Copyright 2011 - 2021 Geoff Graham.  All Rights Reserved.
-Copyright 2016 - 2021 Peter Mather.  All Rights Reserved.
+Copyright 2011-2026 Geoff Graham, Peter Mather and Gerry Allardice.
 
-This file and modified versions of this file are supplied to specific individuals or organisations under the following
-provisions:
+Redistribution and use in source and binary forms, with or without
+modification, are permitted provided that the following conditions are met:
 
-- This file, or any files that comprise the MMBasic source (modified or not), may not be distributed or copied to any other
-  person or organisation without written permission.
+1. Redistributions of source code must retain the above copyright notice,
+   this list of conditions and the following disclaimer.
 
-- Object files (.o and .hex files) generated using this file (modified or not) may not be distributed or copied to any other
-  person or organisation without written permission.
+2. Redistributions in binary form must reproduce the above copyright notice,
+   this list of conditions and the following disclaimer in the documentation
+   and/or other materials provided with the distribution.
 
-- This file is provided in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty of
-  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
+3. Neither the name of the copyright holders nor the names of its contributors
+   may be used to endorse or promote products derived from this software
+   without specific prior written permission.
 
-************************************************************************************************************************/
+4. The name MMBasic be used when referring to the interpreter in any
+   documentation and promotional material and the original copyright message
+  be displayed  on the console at startup (additional copyright messages may
+   be added).
+
+5. All advertising materials mentioning features or use of this software must
+   display the following acknowledgement: This product includes software
+   developed by Geoff Graham and Peter Mather.
+
+THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
+ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
+WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
+DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDERS OR CONTRIBUTORS BE LIABLE
+FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL
+DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR
+SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER
+CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY,
+OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
+OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+
+*******************************************************************************/
 
 //#include <math.h>
 #include <float.h>
@@ -29,7 +49,6 @@ provisions:
 #include "MMBasic_Includes.h"
 
 #include "Hardware_Includes.h"
-//#include "xregex.h"
 #include "re.h"
 extern RNG_HandleTypeDef hrng;
 extern char runcmd[STRINGSIZE];
@@ -52,7 +71,7 @@ const char* overlaid_functions[]={
 	"MM.ONEWIRE",
 	"MM.FLAGS",
 	"MM.ESC",
-	"MM.POS",
+	"POS",
 	"MM.END"
 };
 
@@ -164,14 +183,41 @@ void fun_cmdline(void){
 }
 // function (which looks like a pre defined variable) to return the version number
 // it pulls apart the VERSION string to generate the number
+// Beta number 0-49  RC number 50-99
 void fun_version(void){
 	char *p;
+	/* Each step skips the separator that stopped the one before it - a '.', or
+   	   the 'b' of a beta, or the "RC" of a release candidate.  A release has no
+   	   fourth field, so strtol stops on the terminating NUL and p + 1 would read
+   	   PAST THE END of the string literal, parsing whatever the linker happened
+   	   to put there as the beta number.  So check there is something to step
+   	   over.  "6.03.02b8" is unchanged at 6.030208; "6.03.02" is now reliably
+   	   6.0302; "6.04.00RC1" is 6.040051. */
     fret = strtol(VERSION, &p, 10);
     fret += (MMFLOAT)strtol(p + 1, &p, 10) / 100;
     fret += (MMFLOAT)strtol(p + 1, &p, 10) / 10000;
-    fret += (MMFLOAT)strtol(p + 1, &p, 10) / 1000000;
+	/* The fourth field's separator says which kind of pre-release this is:
+	   'b' for a beta, "RC" for a release candidate.  A beta contributes its
+	   own number, so "6.03.02b8" stays 6.030208.  A release candidate is
+	   offset by 50, so "6.04.00RC1" is 6.040051: that puts every RC above
+	   every beta of the same release and gives RC0 a value of its own, while
+	   staying inside the two digits this field owns.  The offset must not
+	   reach 100 - that would carry into the third field's digits and make
+	   RC1 read 6.040101, which is indistinguishable from 6.04.01b1.  The 'C'
+	   has to be stepped over as well - stepping over one character only, as
+	   a beta needs, left strtol looking at "C1", which returns 0 and made
+	   every RCn read alike. */
+    int offset = 0;
+ 	if ((p[0] == 'R' || p[0] == 'r') && (p[1] == 'C' || p[1] == 'c'))
+ 	{
+    	p++;
+  		offset = 50;
+   	}
+    fret += (MMFLOAT)(strtol(p + 1, &p, 10) + offset) / 1000000;
     targ = T_NBR;
 }
+
+
 
 void fun_tilde(void){
 	targ=T_INT;

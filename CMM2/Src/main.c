@@ -168,6 +168,7 @@ struct s_ModeDef *ModeDef;
 int PromptFont, PromptFC, PromptBC;                             // the font and colours selected at the prompt
 uint8_t RxBuffer, TxBuffer;
 int MMCharPos;
+int helpquotes=0;
 volatile int MMAbort = false;
 int use_uart;
 char bootcause[12]={0};
@@ -223,7 +224,7 @@ char FunKey[NBRPROGKEYS][MAXKEYLEN + 1]= {		// data storage for the function key
 		{"LIST\r\n"},
 		{"EDIT\r\n"},
 //
-		{"AUTOSAVE \"\"\x82"},// Position cursor inside pair of double quotes
+		{"AUTOSAVE N \"\"\x82"},// Position cursor inside pair of double quotes
 		{"XMODEM RECEIVE \"\"\x82"},
 		{"XMODEM SEND \"\"\x82"},
 		{"EDIT \"\"\x82"},
@@ -768,8 +769,8 @@ if(!(_excep_code == RESTART_NOAUTORUN || _excep_code == RESET_COMMAND || _excep_
 		  SerUSBPutS(COPYRIGHT0);
 		  GUIPrintString(maxW/2, 70+gui_font_height*4, gui_font, JUSTIFY_CENTER, JUSTIFY_MIDDLE, ORIENT_NORMAL, WHITE, BLACK, COPYRIGHT1);
 		  SerUSBPutS(COPYRIGHT1);
-		  //GUIPrintString(maxW/2, 70+gui_font_height*5, gui_font, JUSTIFY_CENTER, JUSTIFY_MIDDLE, ORIENT_NORMAL, WHITE, BLACK, COPYRIGHT2);
-		  //SerUSBPutS(COPYRIGHT2);
+		  GUIPrintString(maxW/2, 70+gui_font_height*5, gui_font, JUSTIFY_CENTER, JUSTIFY_MIDDLE, ORIENT_NORMAL, WHITE, BLACK, COPYRIGHT2);
+		  SerUSBPutS(COPYRIGHT2A);
 		  CurrentY=70+gui_font_height*5;
 		  MMPrintString("\r\n");
 		  OptionFileErrorAbort = 1;
@@ -801,7 +802,8 @@ if(_excep_code == RESTART_HEAP) {
 
 CloseAllFiles();
 while ((i = getConsole()) != -1){;} //clear anything in console
-if(setjmp(mark) != 0) {
+if(setjmp(mark) != 0) {    //Longjump to recover from error or CNTRL+C
+
 	  SerUSBPutS("\033[?25h");
 	  SerUSBPutS("\033[37m");
 	  SerUSBPutS("\033[m");
@@ -853,20 +855,22 @@ if(setjmp(mark) != 0) {
     // we got here via a long jump which means an error or CTRL-C or the program wants to exit to the command prompt
     ContinuePoint = nextstmt;                                   // in case the user wants to use the continue command
     *tknbuf = 0;                                                // we do not want to run whatever is in the token buffer
-} else {
+} else {  //Normal Start
 	ClearProgram();
 	PrepareProgram(true);
 	_excep_cause = CAUSE_MMSTARTUP;
-	if(FindSubFun("MM.STARTUP", 0) >= 0) {
+	if(FindSubFun("MM.STARTUP", 0) >= 0) {                  //Execute MM.STARTUP if it exists
 	ExecuteProgram("MM.STARTUP\0");
 	}
 	_excep_cause = CAUSE_NOTHING;
 	if(Option.Autorun && *ProgMemory == 0x01 && _excep_code != RESTART_NOAUTORUN) {
 	  strcpy(inpbuf,"RUN\r\n");
-	  tokenise(true);                                             // turn into executable code
+	  tokenise(true);   // turn into executable code
+	  executerun=1;               //G.A. Fix for AUTORUN ON required an explicit END command
 	  ExecuteProgram(tknbuf);                                     // execute the line straight away
+	  if(executerun)cleanend();   //G.A. Fix for AUTORUN ON required an explicit END command
 	}
-	if(Option.Autorun && Option.ProgramStartCode < 0 && _excep_code != RESTART_NOAUTORUN) {
+	if(Option.Autorun && Option.ProgramStartCode < 0 && _excep_code != RESTART_NOAUTORUN) {   //i.e. OPTION RAM is used
 	  FRESULT fr;
 	  FILINFO fno;
 	  OptionFileErrorAbort = 0;
@@ -878,6 +882,7 @@ if(setjmp(mark) != 0) {
 			  tokenise(true);                                             // turn into executable code
 			  executerun=1;
 			  ExecuteProgram(tknbuf);                                     // execute the line straight away
+
 		  }
 	  }
 	  OptionFileErrorAbort = 1;

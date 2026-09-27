@@ -1,27 +1,47 @@
-/***********************************************************************************************************************
-MMBasic
+/***************************************************************************
 
+CMM2 MMBasic
 commands.c
 
 Handles all the commands in MMBasic
 
-Copyright 2011 - 2021 Geoff Graham.  All Rights Reserved.
-Copyright 2016 - 2021 Peter Mather.  All Rights Reserved.
+Copyright 2011-2026 Geoff Graham, Peter Mather and Gerry Allardice.
 
-This file and modified versions of this file are supplied to specific individuals or organisations under the following
-provisions:
+Redistribution and use in source and binary forms, with or without
+modification, are permitted provided that the following conditions are met:
 
-- This file, or any files that comprise the MMBasic source (modified or not), may not be distributed or copied to any other
-  person or organisation without written permission.
+1. Redistributions of source code must retain the above copyright notice,
+   this list of conditions and the following disclaimer.
 
-- Object files (.o and .hex files) generated using this file (modified or not) may not be distributed or copied to any other
-  person or organisation without written permission.
+2. Redistributions in binary form must reproduce the above copyright notice,
+   this list of conditions and the following disclaimer in the documentation
+   and/or other materials provided with the distribution.
 
-- This file is provided in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty of
-  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
+3. Neither the name of the copyright holders nor the names of its contributors
+   may be used to endorse or promote products derived from this software
+   without specific prior written permission.
 
-************************************************************************************************************************/
+4. The name MMBasic be used when referring to the interpreter in any
+   documentation and promotional material and the original copyright message
+  be displayed  on the console at startup (additional copyright messages may
+   be added).
 
+5. All advertising materials mentioning features or use of this software must
+   display the following acknowledgement: This product includes software
+   developed by Geoff Graham and Peter Mather.
+
+THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
+ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
+WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
+DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDERS OR CONTRIBUTORS BE LIABLE
+FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL
+DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR
+SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER
+CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY,
+OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
+OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+
+*******************************************************************************/
 #include "MMBasic_Includes.h"
 
 #include "Hardware_Includes.h"
@@ -208,11 +228,175 @@ void do_help(char *p){
     }
     ShowCursor(false);
 }
-void cmd_help(void){
-	do_help(cmdline);
-	memset(cmdline,0,STRINGSIZE);
-	memset(inpbuf,0,STRINGSIZE);
+/*
+void cmd_helpx(void){
+	  do_help(cmdline);
+	  memset(cmdline,0,STRINGSIZE);
+	  memset(inpbuf,0,STRINGSIZE);
 }
+*/
+
+int printWrappedText(const char *text, int screenWidth, int listcnt, int all)
+{
+	int length = strlen(text);
+	int start = 0; // Start index of the current line
+	char buff[STRINGSIZE];
+	while (start < length)
+	{
+		int end = start + screenWidth; // Calculate the end index for the current line
+		if (end >= length)
+		{
+			// If end is beyond the text length, just print the remaining text
+			memset(buff, 0, STRINGSIZE);
+			sprintf(buff, "%s", text + start);
+			MMPrintString(buff);
+			ListNewLine(&listcnt, all);
+			break;
+		}
+
+		// Find the last space within the current screen width
+		int lastSpace = -1;
+		for (int i = start; i < end; i++)
+		{
+			if (text[i] == ' ')
+			{
+				lastSpace = i;
+			}
+		}
+
+		if (lastSpace != -1)
+		{
+			// If a space is found, break at the space
+			memset(buff, 0, STRINGSIZE);
+			sprintf(buff, "%.*s", lastSpace - start, text + start);
+			MMPrintString(buff);
+			ListNewLine(&listcnt, all);
+			start = lastSpace + 1; // Skip the space
+		}
+		else
+		{
+			// If no space is found, truncate at screen width
+			memset(buff, 0, STRINGSIZE);
+			sprintf(buff, "%.*s", screenWidth, text + start);
+			MMPrintString(buff);
+			ListNewLine(&listcnt, all);
+			start += screenWidth;
+		}
+	}
+	return listcnt;
+}
+
+
+
+
+
+
+void cmd_help(void){
+
+	if(CurrentLinePtr) error("Invalid in a program");
+	if (!ExistsFile("/help.txt")){
+		  helpquotes=0;
+		  do_help(cmdline);
+		  memset(cmdline,0,STRINGSIZE);
+		  memset(inpbuf,0,STRINGSIZE);
+	}else{
+
+
+		getcsargs(&cmdline, 1);
+		//if (!ExistsFile("help.txt"))
+		// 	error("help.txt not found");
+		if (!argc)
+		{
+			helpquotes=1;
+			MMPrintString("Enter help and the name of the command or function\r\nUse * for multicharacter wildcard or ? for single character wildcard\r\n");
+		}
+		else
+		{
+			if (helpquotes==0){        //Set helpquotes=1 and reissue command so it tokenises with quotes.
+				 helpquotes=1;
+				 strcpy(inpbuf,"HELP \"");
+				 strcat(inpbuf,argv[0]);
+			     strcat(inpbuf,"\"\r\n");
+			    // MMPrintString(inpbuf);
+			     tokenise(true);                                             // turn into executable code
+			     ExecuteProgram(tknbuf);                                     // execute the line straight away
+				// mymemset(inpbuf,0,STRINGSIZE);
+				return;
+			}
+			int fnbr = FindFreeFileNbr();
+			char *buff = GetTempStrMemory();
+			BasicFileOpen("/help.txt", fnbr, FA_READ);
+			//BasicFileOpen("help.txt", fnbr, FA_READ);
+			int ListCnt = CurrentY / (FontTable[gui_font >> 4][1] * (gui_font & 0b1111)) + 2;
+			//MMPrintString("1");
+			char *p = (char *)getCstring(argv[0]);
+			//MMPrintString(p);
+			bool end = false;
+			while (!FileEOF(fnbr))
+			{ // while waiting for the end of file
+				memset(buff, 0, STRINGSIZE);
+				char *in = buff;
+				while (1)
+				{
+					if (FileEOF(fnbr))
+					{
+						end = true;
+						break;
+					}
+					char c = FileGetChar(fnbr);
+					if (c == '\n')
+						break;
+					if (c == '\r')
+						continue;
+					*in++ = c;
+				}
+				if (end)
+					break;
+				skipspace(p);
+				if (buff[0] == '~')
+				{
+					if (pattern_matching(p, &buff[1], 0, 0))
+					{
+						while (1)
+						{ // loop through all lines for the command
+							memset(buff, 0, STRINGSIZE);
+							char *in = buff;
+							while (1)
+							{ // get this line
+								if (FileEOF(fnbr))
+								{
+									end = true;
+									break;
+								}
+								char c = FileGetChar(fnbr);
+								if (c == '\n')
+									break;
+								if (c == '\r')
+									continue;
+								*in++ = c;
+							}
+							if (end)
+								break;
+							if (buff[0] == '~')
+							{ // now we need to rewind the file to check this line
+								ListNewLine(&ListCnt, false);
+								//lfs_file_seek(&lfs, FileTable[fnbr].lfsptr, -(strlen(buff) + 2), LFS_SEEK_CUR);
+								break;
+							}
+							else
+							{
+								ListCnt = printWrappedText(buff, Option.Width - 1, ListCnt, false);
+							}
+						}
+					}
+				}
+			}
+			FileClose(fnbr);
+		}
+    }
+}
+
+
 
 #ifdef CMD16BIT
 
@@ -1554,19 +1738,19 @@ void MIPS16 cmd_list(void) {
     	step=maxW/gui_font_width/20;
     	m=0;
     	//int x=6;
-    	int x=9;
+    	int x=8;
 		char** c=GetTempMemory((CommandTableSize+x)*sizeof(*c)+(CommandTableSize+x)*20);
 		for(i=0;i<CommandTableSize+x;i++){
 				c[m]= (char *)((int)c + sizeof(char *) * (CommandTableSize+x) + m*20);
     			if(m<CommandTableSize)strcpy(c[m],commandtbl[i].name);
-    			else if(m==CommandTableSize)strcpy(c[m],"HUMID");
-    			else if(m==CommandTableSize+1)strcpy(c[m],"ELSE IF");
-    			else if(m==CommandTableSize+2)strcpy(c[m],"END IF");
-    			else if(m==CommandTableSize+3)strcpy(c[m],"Exit Do");
-    			else if(m==CommandTableSize+4)strcpy(c[m],"Cat");
-    			else if(m==CommandTableSize+5)strcpy(c[m],"Bit(");
-    			else if(m==CommandTableSize+6)strcpy(c[m],"Byte(");
-    			else if(m==CommandTableSize+7)strcpy(c[m],"Flag(");
+    			//else if(m==CommandTableSize)strcpy(c[m],"HUMID");
+    			else if(m==CommandTableSize)strcpy(c[m],"ELSE IF");
+    			else if(m==CommandTableSize+1)strcpy(c[m],"END IF");
+    			else if(m==CommandTableSize+2)strcpy(c[m],"Exit Do");
+    			else if(m==CommandTableSize+3)strcpy(c[m],"Cat");
+    			else if(m==CommandTableSize+4)strcpy(c[m],"Bit(");
+    			else if(m==CommandTableSize+5)strcpy(c[m],"Byte(");
+    			else if(m==CommandTableSize+6)strcpy(c[m],"Flag(");
     			//else if(m==CommandTableSize+5)strcpy(c[m],"I2C2");
     			//else if(m==CommandTableSize+6)strcpy(c[m],"I2C3");
     			//else if(m==CommandTableSize+7)strcpy(c[m],"SPI2");
@@ -1729,6 +1913,9 @@ void MIPS16 ListFile(char *pp, int all) {
     	FileClose(fnbr);
     } else error("File not found");
 }
+
+
+
 #ifdef H7RUN
 /* From H7 takes a filename    */
 void MIPS16 cmd_run(void) {
@@ -5488,13 +5675,20 @@ const char *ParseStructMember(char *p, struct s_structdef *sd)
 		{
 			// Parse dimension value manually (can't use getint during preprocess)
 			int dim = 0;
+			int have_digits = 0;
 			while (*p >= '0' && *p <= '9')
 			{
 				dim = dim * 10 + (*p - '0');
+				have_digits = 1;
 				p++;
 			}
-			if (dim < 1)
-				dim = 1;
+			//if (dim < 1)
+			//	dim = 1;
+			if (!have_digits)   //Fix from Picomite 6.02.01RC8
+				return "Dimensions";
+			if (dim <= OptionBase)
+				return "Dimensions";
+
 			dims[ndims++] = dim;
 			array_elements *= (dim + 1 - OptionBase); // Account for OPTION BASE
 
@@ -6312,6 +6506,7 @@ char MIPS16 *llist(char *b, char *p) {
                     if(IsAlpha(*(b - 1))) *b++ = ' ';               // add a space to the end of the command name
                 }
                 firstnonwhite = false;
+                p += sizeof(CommandToken);                          // CMD16BIT
             } else {                                                // not a command so must be a token
                 strCopyWithCase(b, tokenname(*p));                  // expand the token
                 b += strlen(b);                                     // update pointer to the end of the buffer
@@ -6319,8 +6514,9 @@ char MIPS16 *llist(char *b, char *p) {
                     firstnonwhite = true;
                 else
                     firstnonwhite = false;
+                p++;                                                // CMD16BIT
             }
-            p++;
+            // p++;                                                  // CMD16BIT
             continue;
         }
 
@@ -6344,7 +6540,19 @@ char MIPS16 *llist(char *b, char *p) {
         // must be the end of a line - so return to the caller
         while(*(b-1) == ' ' && b > b_start) --b;                    // eat any spaces on the end of the line
         *b = 0;                                                     // terminate the output buffer
-		replaceAlpha((char *)b_start, overlaid_functions) ;  //replace the user version of all the MM. functions
+		replaceAlpha((char *)b_start, overlaid_functions) ;         //replace the user version of all the MM. functions
+		/*
+		// Replacement of future function compression(needed for H7 )
+		STR_REPLACE((char *)b_start, "BASE$(2,", "BIN$(", 3);
+		STR_REPLACE((char *)b_start, "BASE$(8,", "OCT$(", 3);
+		STR_REPLACE((char *)b_start, "BASE$(16,", "HEX$(", 3);
+		STR_REPLACE((char *)b_start, "SCHANGE$(L,", "LCASE$(", 3);
+		STR_REPLACE((char *)b_start, "SCHANGE$(U,", "UCASE$(", 3);
+		STR_REPLACE((char *)b_start, "TOPBOTTOM(I,", "MIN(", 3);
+		STR_REPLACE((char *)b_start, "TOPBOTTOM(A,", "MAX(", 3);
+		STR_REPLACE((char *)b_start, "SCHANGE$(E,", "LEFT$(", 3);
+		STR_REPLACE((char *)b_start, "SCHANGE$(R,", "RIGHT$(", 3);
+		*/
         return ++p;
     } // end while
 }

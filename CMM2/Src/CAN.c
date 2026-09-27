@@ -5,8 +5,8 @@ CAN.c
 
 Handles the CAN command.
 
-Copyright 2011-2025 Geoff Graham and  Peter Mather.
-Copyright 2024-2025      Gerry Allardice.
+Copyright 2011-2026 Geoff Graham and  Peter Mather.
+Copyright 2024-2026      Gerry Allardice.
 
 Redistribution and use in source and binary forms, with or without
 modification, are permitted provided that the following conditions are met:

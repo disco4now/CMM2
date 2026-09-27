@@ -4,7 +4,7 @@ CMM2 MMBasic
 MATHS.c
 Source for MATHS MMBasic commands and functions
 
-<COPYRIGHT HOLDERS>  Geoff Graham, Peter Mather, Gerry Alllardice
+<COPYRIGHT HOLDERS>  Geoff Graham, Peter Mather, Gerry Allardice
 Copyright (c) 2021, <COPYRIGHT HOLDERS> All rights reserved. 
 Redistribution and use in source and binary forms, with or without modification, are permitted provided that the following conditions are met: 
 1.	Redistributions of source code must retain the above copyright notice, this list of conditions and the following disclaimer.
@@ -495,7 +495,8 @@ uint16_t crc12(const uint8_t *array, uint16_t length, const uint16_t polynome,
 
   if (reverseOut) crc = reverse12(crc);
   crc ^= endmask;
-  return crc;
+  //return crc;
+  return crc &= 0x0FFF; // the CRC register is only 12 bits wide
 }
 
 
