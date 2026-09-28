@@ -57,7 +57,7 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #if !defined(INCLUDE_COMMAND_TABLE) && !defined(INCLUDE_TOKEN_TABLE)
 #include "stm32h7xx.h"
 #include "stm32h7xx_hal.h"
-#include "configuration.h"
+#include "Configuration.h"
 #include "gifdec.h"
 #include "IOPorts.h"
 #include "Timers.h"
@@ -293,7 +293,7 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #define IsPrint(a) isprint((uint8_t)a)
 #define IsAlnum(a) isalnum((uint8_t)a)
 #include "Serial.h"
-#include "FileIO.h"
+#include "fileIO.h"
 #include "Memory.h"
 #include "External.h"
 #include "MM_Misc.h"
@@ -305,18 +305,18 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include "SPI.h"
 #include "CAN.h"
 #include "Flash.h"
-#include "Xmodem.h"
+#include "XModem.h"
 #include "Draw.h"
 #include "MATHS.h"
 #include "ff.h"
 #include "diskio.h"
-#include "audio.h"
+#include "Audio.h"
 #include "OtherDisplays.h"
-#include "gps.h"
+#include "GPS.h"
 #include "keyboard.h"
 #include "sprites.h"
 #include "upng.h"
 #include "turtle.h"
-#include "gui.h"
+#include "GUI.h"
 
 

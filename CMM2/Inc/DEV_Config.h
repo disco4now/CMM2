@@ -32,7 +32,7 @@
 #ifndef _DEV_CONFIG_H_
 #define _DEV_CONFIG_H_
 
-#include "stm32H7xx_hal.h"
+#include "stm32h7xx_hal.h"
 #include <stdint.h>
 #include <stdio.h>
 #include "main.h"
