@@ -56,7 +56,7 @@
 #include <sys/time.h>
 #include <sys/times.h>
 #include "Memory.h"
-#include "flash.h"
+#include "Flash.h"
 /* Variables */
 //#undef errno
 extern int errno;

@@ -25,14 +25,14 @@
 #include "stm32h7xx_it.h"
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
-#include "configuration.h"
-#include "serial.h"
-#include "gps.h"
-#include "audio.h"
+#include "Configuration.h"
+#include "Serial.h"
+#include "GPS.h"
+#include "Audio.h"
 #include "sam.h"
 #include "reciter.h"
 #include "Memory.h"
-#include "flash.h"
+#include "Flash.h"
 #include "IOPorts.h"
 #include "External.h"
 /* USER CODE END Includes */

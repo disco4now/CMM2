@@ -62,9 +62,9 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include "Hardware_Includes.h"
 #include <time.h>
 #include "upng.h"
-#include "CMMFontZero.h"
-#include "CMMFontOne.h"
-#include "CMMFontTwo.h"
+#include "CMMfontZero.h"
+#include "CMMfontOne.h"
+#include "CMMfontTwo.h"
 #include <stdio.h>
 #include "ffconf.h"
 #include "hxcmod.h"
