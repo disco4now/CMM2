@@ -10,7 +10,7 @@ A compiled binary version is under the the binaries directory.
 A user manual for MMBasic on the CMM2 is under the docs directory.  
 
 
-Change list from V5.07.01 
+Changes since V5.07.01  Release  
 V6.00.00b14  
 Licence updated.  
 16 bit tokens etc.  
