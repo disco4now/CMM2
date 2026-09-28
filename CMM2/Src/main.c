@@ -63,7 +63,7 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 /* USER CODE BEGIN Includes */
 #include "MMBasic_Includes.h"
 #include "Hardware_Includes.h"
-#include "memory.h"
+#include "Memory.h"
 #include <time.h>
 
 /* USER CODE END Includes */
