@@ -5,7 +5,7 @@
 #include <stdlib.h>
 #include <stdint.h>
 #include <string.h>
-#include "memory.h"
+#include "Memory.h"
 #include "MMBasic.h"
 
 unsigned char* alloc1df (int n)
