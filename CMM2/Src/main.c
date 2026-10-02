@@ -3962,14 +3962,17 @@ void SaveProgramToFlash(char *pm, int msg, char *fname, int size) {
 
 // takes a pointer to RAM containing a program (in clear text) and writes it to memory in tokenised format
 // It is used to compared against the program already in Flash to see if we need to rewrite the Flash.
+// It also returns the total program size including Font,CSub and CFunction binary copies so we know how
+// much flash need to be erased in preparation for saving the program.
 uint32_t SaveProgramToMemory(char *pm, int msg, char *fname) {
     char *p, prevchar = 0, buf[STRINGSIZE];
-    int nbr;
-    uint32_t  retvalue;
+    CommandToken endtoken;
+  //  int nbr;
+  //  uint32_t  retvalue;
 
-    //uint32_t storedupdates[MAXCFUNCTION], updatecount=0, realmemsave, retvalue;
-    // int nbr, i, n, SaveSizeAddr;
-    //char  fontnbr
+    uint32_t storedupdates[MAXCFUNCTION], updatecount=0, realmemsave, retvalue;
+    int nbr, i, n, SaveSizeAddr;
+    char  fontnbr;
 
 	SCB_CleanInvalidateDCache();
 	clearrepeat();
@@ -4037,7 +4040,7 @@ uint32_t SaveProgramToMemory(char *pm, int msg, char *fname) {
     MemWriteByte(0);
     MemWriteAlign();                                            // this will flush the buffer and step the flash write pointer to the next word boundary
     retvalue=((uint32_t)realmempointer-(uint32_t)SDMemory);
-#ifdef DOWENEEDTHIS
+
     // now we must scan the program looking for CFUNCTION/CSUB/DEFINEFONT statements, extract their data and program it into the flash used by  CFUNCTIONs
      // programs are terminated with two zero bytes and one or more bytes of 0xff.  The CFunction area starts immediately after that.
      // the format of a CFunction/CSub/Font in flash is:
@@ -4263,7 +4266,7 @@ uint32_t SaveProgramToMemory(char *pm, int msg, char *fname) {
          }
          while(*p) p++;                                              // look for the zero marking the start of the next element
      }
-#endif
+
      MemWriteWord(0xffffffff);                                // make sure that the end of the CFunctions is terminated with an erased word
      MemWriteClose();                                              // this will flush the buffer and step the flash write pointer to the next word boundary
      //retvalue=((uint32_t)realmempointer-(uint32_t)SDMemory);

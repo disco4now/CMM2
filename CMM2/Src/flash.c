@@ -121,6 +121,7 @@ int FlashWriteInit(uint32_t sector) {
 	}
 	SCB_EnableICache() ;
 	SCB_EnableDCache() ;
+	//MMPrintString("Erased Sector ");PIntH(sector);PRet();
 	return 0;
 }
 void MemWriteBlock(void){
@@ -637,6 +638,7 @@ uint32_t GetSector(uint32_t Address)
   else
   {
     sector = FLASH_SECTOR_7;
+    MMPrintString("Sector not located ");PIntH(Address);PRet();
   }
 
   return sector;

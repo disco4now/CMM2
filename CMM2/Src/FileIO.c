@@ -724,6 +724,7 @@ int FileLoadProgram(char *fname, int mode) {
 		size=(uint32_t)top - (uint32_t)SDMemory+256;
 		FreeMemorySafe((void *)&SDMemory);
     }
+    //if(load){MMPrintString("Writing Flash");PRet();}
     if(load || Option.ProgramStartCode<0)SaveProgramToFlash(buf, false, name, size);
     FreeMemorySafe((void *)&buf);
     FreeMemorySafe((void *)&dlist);
